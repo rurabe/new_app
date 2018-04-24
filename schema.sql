@@ -63,6 +63,76 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: franchises; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.franchises (
+    id integer NOT NULL,
+    name text,
+    abbv text,
+    bye integer,
+    schedule text[],
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: franchises_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.franchises_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: franchises_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.franchises_id_seq OWNED BY public.franchises.id;
+
+
+--
+-- Name: leagues; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.leagues (
+    id integer NOT NULL,
+    name text,
+    site text,
+    site_id integer,
+    user_id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: leagues_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.leagues_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: leagues_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.leagues_id_seq OWNED BY public.leagues.id;
+
+
+--
 -- Name: migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -94,6 +164,41 @@ ALTER SEQUENCE public.migrations_id_seq OWNED BY public.migrations.id;
 
 
 --
+-- Name: picks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.picks (
+    id integer NOT NULL,
+    number text NOT NULL,
+    league_id integer NOT NULL,
+    team_id integer,
+    player_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: picks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.picks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: picks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.picks_id_seq OWNED BY public.picks.id;
+
+
+--
 -- Name: players; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -101,7 +206,7 @@ CREATE TABLE public.players (
     id integer NOT NULL,
     name text,
     "position" text,
-    team_id integer,
+    franchise_id integer,
     nfl_id integer,
     yahoo_id integer,
     espn_id integer,
@@ -147,9 +252,8 @@ ALTER SEQUENCE public.players_id_seq OWNED BY public.players.id;
 CREATE TABLE public.teams (
     id integer NOT NULL,
     name text,
-    abbv text,
-    bye integer,
-    schedule text[],
+    owner text,
+    league_id integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -220,10 +324,31 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: franchises id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.franchises ALTER COLUMN id SET DEFAULT nextval('public.franchises_id_seq'::regclass);
+
+
+--
+-- Name: leagues id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.leagues ALTER COLUMN id SET DEFAULT nextval('public.leagues_id_seq'::regclass);
+
+
+--
 -- Name: migrations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.migrations ALTER COLUMN id SET DEFAULT nextval('public.migrations_id_seq'::regclass);
+
+
+--
+-- Name: picks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.picks ALTER COLUMN id SET DEFAULT nextval('public.picks_id_seq'::regclass);
 
 
 --
@@ -248,11 +373,35 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: franchises franchises_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.franchises
+    ADD CONSTRAINT franchises_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: leagues leagues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.leagues
+    ADD CONSTRAINT leagues_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: migrations migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.migrations
     ADD CONSTRAINT migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: picks picks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.picks
+    ADD CONSTRAINT picks_pkey PRIMARY KEY (id);
 
 
 --
@@ -280,6 +429,48 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: index_franchises_on_abbv; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_franchises_on_abbv ON public.franchises USING btree (abbv);
+
+
+--
+-- Name: index_leagues_on_league_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_leagues_on_league_id ON public.teams USING btree (league_id);
+
+
+--
+-- Name: index_leagues_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_leagues_on_user_id ON public.leagues USING btree (user_id);
+
+
+--
+-- Name: index_picks_on_league_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_picks_on_league_order ON public.picks USING btree (league_id, number);
+
+
+--
+-- Name: index_picks_on_one_player_per_league; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_picks_on_one_player_per_league ON public.picks USING btree (player_id, league_id);
+
+
+--
+-- Name: index_picks_on_team_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_picks_on_team_id ON public.picks USING btree (team_id);
+
+
+--
 -- Name: index_players_on_espn_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -301,6 +492,13 @@ CREATE UNIQUE INDEX index_players_on_fp_id ON public.players USING btree (fp_id)
 
 
 --
+-- Name: index_players_on_franchise_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_players_on_franchise_id ON public.players USING btree (franchise_id);
+
+
+--
 -- Name: index_players_on_name_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -308,24 +506,10 @@ CREATE INDEX index_players_on_name_trgm ON public.players USING gist (name publi
 
 
 --
--- Name: index_players_on_team_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_players_on_team_id ON public.players USING btree (team_id);
-
-
---
 -- Name: index_players_on_yahoo_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_players_on_yahoo_id ON public.players USING btree (yahoo_id);
-
-
---
--- Name: index_teams_on_abbv; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_teams_on_abbv ON public.teams USING btree (abbv);
 
 
 --
@@ -350,6 +534,27 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 
 
 --
+-- Name: franchises timestamps_on_franchises; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER timestamps_on_franchises BEFORE INSERT OR UPDATE ON public.franchises FOR EACH ROW EXECUTE PROCEDURE public.timestamp_on_change();
+
+
+--
+-- Name: leagues timestamps_on_leagues; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER timestamps_on_leagues BEFORE INSERT OR UPDATE ON public.leagues FOR EACH ROW EXECUTE PROCEDURE public.timestamp_on_change();
+
+
+--
+-- Name: picks timestamps_on_picks; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER timestamps_on_picks BEFORE INSERT OR UPDATE ON public.picks FOR EACH ROW EXECUTE PROCEDURE public.timestamp_on_change();
+
+
+--
 -- Name: players timestamps_on_players; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -371,11 +576,51 @@ CREATE TRIGGER timestamps_on_users BEFORE INSERT OR UPDATE ON public.users FOR E
 
 
 --
--- Name: players players_team_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: leagues leagues_user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.leagues
+    ADD CONSTRAINT leagues_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: picks picks_league_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.picks
+    ADD CONSTRAINT picks_league_id_fk FOREIGN KEY (league_id) REFERENCES public.leagues(id) ON DELETE CASCADE;
+
+
+--
+-- Name: picks picks_player_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.picks
+    ADD CONSTRAINT picks_player_id_fk FOREIGN KEY (player_id) REFERENCES public.players(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: picks picks_team_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.picks
+    ADD CONSTRAINT picks_team_id_fk FOREIGN KEY (team_id) REFERENCES public.teams(id) ON DELETE CASCADE;
+
+
+--
+-- Name: players players_franchise_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.players
-    ADD CONSTRAINT players_team_id_fk FOREIGN KEY (team_id) REFERENCES public.players(id) ON DELETE RESTRICT;
+    ADD CONSTRAINT players_franchise_id_fk FOREIGN KEY (franchise_id) REFERENCES public.franchises(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: teams teams_league_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.teams
+    ADD CONSTRAINT teams_league_id_fk FOREIGN KEY (league_id) REFERENCES public.leagues(id) ON DELETE CASCADE;
 
 
 --

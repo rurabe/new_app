@@ -15,7 +15,7 @@ exports.setup = function(options, seedLink) {
 };
 
 exports.up = function(db) {
-  return db.createTable('pick',{
+  return db.createTable('picks',{
     id:                     {type: 'int', primaryKey: true, autoIncrement: true, notNull: true},
     number:                 {type: 'text', notNull: true},
     league_id:              {type: 'int', notNull: true, foreignKey: { name: 'picks_league_id_fk', table: 'leagues', mapping: 'id', rules: {onDelete: 'CASCADE'} }},
