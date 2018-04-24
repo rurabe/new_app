@@ -6,7 +6,9 @@
   "scripts": {
     "test": "jest",
     "start": "webpack-dev-server --open --hot",
-    "build": "webpack"
+    "build": "webpack",
+    "migrate": "db-migrate up && yarn dump",
+    "dump": "pg_dump -d drafthacker --schema-only -O -f schema.sql"
   },
   "author": "Ryan Urabe <rurabe@gmail.com>",
   "license": "ISC",
@@ -18,7 +20,8 @@
     "plugins": [
       "transform-class-properties",
       "transform-object-rest-spread",
-      "react-hot-loader/babel"
+      "react-hot-loader/babel",
+      "transform-strict-mode"
     ]
   },
   "dependencies": {
@@ -26,10 +29,25 @@
     "babel-loader": "^7.1.4",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-strict-mode": "^6.24.1",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
+    "bcrypt": "^2.0.0",
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.18.2",
+    "cheerio": "^1.0.0-rc.2",
+    "connect-redis": "^3.3.3",
+    "db-migrate": "^0.11.1",
+    "db-migrate-pg": "^0.4.0",
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
     "immutable": "^3.8.2",
     "jest": "^22.4.3",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "pg-promise": "^8.4.0",
+    "pug": "^2.0.3",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "react-hot-loader": "^4.0.1",
@@ -39,6 +57,8 @@
     "redux": "^4.0.0",
     "redux-immutable": "^4.0.0",
     "reselect": "^3.0.1",
+    "squel": "^5.12.1",
+    "superagent": "^3.8.2",
     "webpack": "^4.6.0",
     "webpack-cli": "^2.0.14",
     "webpack-dev-server": "^3.1.3"
